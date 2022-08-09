@@ -1,39 +1,17 @@
 using System;
+using System.Security.Cryptography;
 
-class Message
+class WeakEncryption
 {
-    readonly Object countLock = new Object();
-    readonly Object textLock = new Object();
-
-    int count;
-    string text;
-
-    public void Print()
+    public static byte[] encryptString()
     {
-        lock (countLock)
-        {
-            lock (textLock)
-            {
-                while (text == null)
-                    System.Threading.Monitor.Wait(textLock);
-                System.Console.Out.WriteLine(text + "=" + count);
-            }
-        }
-    }
+        SymmetricAlgorithm serviceProvider = new DESCryptoServiceProvider();
+        byte[] key = { 16, 22, 240, 11, 18, 150, 192, 21 };
+        serviceProvider.Key = key;
+        ICryptoTransform encryptor = serviceProvider.CreateEncryptor();
 
-    public string Text
-    {
-        set
-        {
-            lock (countLock)
-            {
-                lock (textLock)
-                {
-                    ++count;
-                    text = value;
-                    System.Threading.Monitor.Pulse(textLock);
-                }
-            }
-        }
+        String message = "Hello World";
+        byte[] messageB = System.Text.Encoding.ASCII.GetBytes(message);
+        return encryptor.TransformFinalBlock(messageB, 0, messageB.Length);
     }
 }
